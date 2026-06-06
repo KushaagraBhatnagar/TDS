@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-tdc-beige text-tdc-charcoal antialiased selection:bg-tdc-gold/20 selection:text-tdc-green-dark;
+  }
+}
+
+/* Custom scrollbars for a premium look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-tdc-sage/30 rounded-full hover:bg-tdc-sage/50 transition-colors;
+}
+
+/* Modern luxury gradient borders */
+.gold-gradient-border {
+  position: relative;
+  background: linear-gradient(to right, #C59B27, #F4EFE6);
+  padding: 1px;
+}
+
+/* Glassmorphism panel styling */
+.glass-panel {
+  @apply bg-white/85 backdrop-blur-md border border-tdc-cream-dark/40 shadow-sm rounded-xl;
+}
+
+.luxury-card {
+  @apply bg-white border border-tdc-cream-dark/30 shadow-[0_4px_20px_-4px_rgba(29,38,35,0.04)] rounded-xl transition-all duration-300 hover:shadow-[0_10px_30px_-6px_rgba(29,38,35,0.08)] hover:-translate-y-[2px];
+}
+
+/* Soft transitions */
+.smooth-transition {
+  @apply transition-all duration-200 ease-out;
+}
