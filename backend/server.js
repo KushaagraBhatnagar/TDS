@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: true, // Dynamically reflects origin back to allow credentials in production
+  origin:'*', 
   credentials: true
 }));
 app.use(express.json());
@@ -41,19 +41,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/matches', matchRoutes);
 
-// Root welcome endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'TDC Matchmaker API Server is running successfully.',
-    status: 'online',
-    endpoints: {
-      health: '/health',
-      auth: '/api/auth',
-      clients: '/api/clients',
-      matches: '/api/matches'
-    }
-  });
-});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
