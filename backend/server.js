@@ -42,12 +42,16 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/matches', matchRoutes);
 
 
+let lastDbError = null;
+
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const isConnected = mongoose.connection.readyState === 1;
   res.json({
     status: 'healthy',
     timestamp: new Date(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    database: isConnected ? 'connected' : 'disconnected',
+    error: isConnected ? null : (lastDbError || 'Connection pending or failed silently')
   });
 });
 
@@ -69,6 +73,7 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000
     });
     console.log('MongoDB connected');
+    lastDbError = null;
     // Only listen on port in local dev environments; Vercel serverless handles this in production
     if (process.env.VERCEL !== '1') {
       app.listen(PORT, () => {
@@ -77,6 +82,7 @@ const connectDB = async () => {
     }
   } catch (error) {
     console.log('MongoDB connection error', error);
+    lastDbError = error.message || String(error);
     if (process.env.VERCEL !== '1') {
       process.exit(1);
     }
