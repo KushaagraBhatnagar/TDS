@@ -30,6 +30,9 @@ const MatchPanel = ({ client, apiCall, onMatchSent, triggerToast }) => {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [lastPreviewUrl, setLastPreviewUrl] = useState(null);
 
+  // Weights Modal State
+  const [weightsModalOpen, setWeightsModalOpen] = useState(false);
+
   // Load initial weights
   useEffect(() => {
     if (client?.customWeights) {
@@ -219,81 +222,28 @@ const MatchPanel = ({ client, apiCall, onMatchSent, triggerToast }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 font-sans">
+    <div className="space-y-5 font-sans">
       
-      {/* 1. Custom Weights Slider Panel */}
-      <div className="xl:col-span-1 bg-white p-6 rounded-xl border border-tdc-cream-dark/30 shadow-[0_4px_20px_-4px_rgba(29,38,35,0.03)] h-fit">
-        <div className="flex items-center justify-between border-b border-tdc-cream-dark pb-4 mb-4">
-          <div className="flex items-center gap-2">
-            <Sliders className="h-5 w-5 text-tdc-gold" />
-            <h3 className="font-serif text-lg font-bold text-tdc-green">
-              Match Weight Customizer
-            </h3>
-          </div>
-          {updatingWeights && (
-            <span className="text-[10px] text-tdc-sage font-semibold animate-pulse uppercase tracking-wider">
-              Recalculating...
-            </span>
-          )}
-        </div>
-
-        {/* Co-Pilot Trigger */}
-        <button
-          onClick={handleAiInitializeWeights}
-          disabled={initializingWeights}
-          className="w-full mb-6 bg-tdc-green hover:bg-tdc-gold text-white hover:text-tdc-green-dark py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-semibold text-xs uppercase tracking-wider border border-tdc-gold/30 hover:border-tdc-gold smooth-transition disabled:opacity-50"
-        >
-          {initializingWeights ? (
-            <>
-              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div>
-              <span>Analyzing Bio details...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 text-tdc-gold fill-tdc-gold hover:fill-tdc-green" />
-              <span>Initialize Sliders via AI Co-Pilot</span>
-            </>
-          )}
-        </button>
-
-        {/* Sliders */}
-        <div className="space-y-4">
-          {Object.entries(weights).map(([key, val]) => (
-            <div key={key} className="space-y-1">
-              <div className="flex justify-between text-xs font-semibold capitalize text-tdc-charcoal">
-                <span>{key} Weight</span>
-                <span className="text-tdc-gold font-bold bg-tdc-cream px-2 py-0.5 rounded border border-tdc-cream-dark/40">
-                  {val} / 10
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={val}
-                onChange={(e) => handleWeightChange(key, e.target.value)}
-                onMouseUp={handleSliderMouseUp}
-                onTouchEnd={handleSliderMouseUp}
-                className="w-full h-1.5 bg-tdc-cream-dark/40 rounded-lg appearance-none cursor-pointer accent-tdc-gold focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] text-tdc-charcoal/50 mt-4 leading-relaxed font-medium italic">
-          * Drag any weight slider. The system will automatically recalculate matching scores in real-time!
-        </p>
-      </div>
-
-      {/* 2. Matches Recommended Cards List */}
-      <div className="xl:col-span-2 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-tdc-cream/20 p-4 rounded-xl border border-tdc-cream-dark/30">
+      {/* Recommended Matches Pool Header Panel with inline Set Weights button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-tdc-cream-dark/30 shadow-[0_2px_15px_-4px_rgba(29,38,35,0.02)]">
+        <div>
           <h3 className="font-serif text-lg font-bold text-tdc-green">
             Recommended Matches Pool
           </h3>
-          <span className="text-xs text-tdc-charcoal/60 font-medium font-sans">
+          <p className="text-xs text-tdc-charcoal/60 font-medium font-sans mt-0.5">
             Showing opposite gender candidates sorted by AI compatibility score (&gt; 50%).
-          </span>
+          </p>
         </div>
+        <button
+          onClick={() => setWeightsModalOpen(true)}
+          className="bg-tdc-green hover:bg-tdc-gold text-white hover:text-tdc-green-dark py-2.5 px-6 rounded-lg flex items-center justify-center gap-2 font-semibold text-xs uppercase tracking-wider border border-tdc-gold/30 hover:border-tdc-gold smooth-transition flex-shrink-0"
+        >
+          <Sliders className="h-3.5 w-3.5 text-tdc-gold" />
+          <span>Set Weights</span>
+        </button>
+      </div>
+
+      <div className="space-y-4">
 
         {lastPreviewUrl && (
           <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between text-xs text-emerald-800">
@@ -376,22 +326,7 @@ const MatchPanel = ({ client, apiCall, onMatchSent, triggerToast }) => {
                       </div>
                     )}
 
-                    {/* AI Insights Key Points */}
-                    {match.compatibility?.keyPoints && match.compatibility.keyPoints.length > 0 && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                        {match.compatibility.keyPoints.map((pt, idx) => (
-                          <div key={idx} className="p-2.5 rounded-lg border border-tdc-cream-dark/20 bg-tdc-cream/10 space-y-0.5">
-                            <div className="flex items-center gap-1.5">
-                              {pt.status === 'good' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />}
-                              {pt.status === 'warning' && <ShieldAlert className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />}
-                              {pt.status === 'bad' && <ShieldAlert className="h-3.5 w-3.5 text-rose-600 flex-shrink-0" />}
-                              <span className="text-[10px] font-bold text-tdc-green-dark">{pt.label}</span>
-                            </div>
-                            <p className="text-[10px] text-tdc-charcoal/60 leading-relaxed">{pt.details}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {/* Key points removed from card view (accessible via Deep AI Co-Pilot modal) */}
                   </div>
 
                   {/* Actions Footer */}
@@ -608,6 +543,108 @@ const MatchPanel = ({ client, apiCall, onMatchSent, triggerToast }) => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MATCH WEIGHTS CUSTOMIZER MODAL */}
+      {weightsModalOpen && (
+        <div 
+          className="fixed inset-0 bg-tdc-charcoal/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in"
+          onClick={() => setWeightsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-3xl w-full border-2 border-tdc-gold shadow-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[85vh] animate-scale-up font-sans"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-tdc-green text-white p-4 border-b-2 border-tdc-gold flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Sliders className="h-5 w-5 text-tdc-gold" />
+                <h3 className="font-serif text-base font-bold text-tdc-beige">
+                  Match Weight Customizer
+                </h3>
+              </div>
+              <button 
+                onClick={() => setWeightsModalOpen(false)}
+                className="text-tdc-cream/60 hover:text-white text-xl font-bold transition-colors outline-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-grow">
+              <div className="flex items-center justify-between bg-tdc-cream/20 p-2.5 rounded-lg border border-tdc-cream-dark/30">
+                <div className="text-[11px] text-tdc-charcoal/70">
+                  <p className="font-bold text-tdc-green text-xs">Optimize Matching Focus</p>
+                  <p className="mt-0.5">Initialize weights via AI or modify values manually.</p>
+                </div>
+                <button
+                  onClick={handleAiInitializeWeights}
+                  disabled={initializingWeights}
+                  className="bg-tdc-green hover:bg-tdc-gold text-white hover:text-tdc-green-dark py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 font-semibold text-[10px] uppercase tracking-wider border border-tdc-gold/30 hover:border-tdc-gold smooth-transition disabled:opacity-50 flex-shrink-0"
+                >
+                  {initializingWeights ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5 text-tdc-gold fill-tdc-gold" />
+                      <span>AI Co-Pilot</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Sliders in a 3-column no-scroll grid layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {Object.entries(weights).map(([key, val]) => (
+                  <div key={key} className="flex flex-col gap-1 p-2 rounded-lg border border-tdc-cream-dark/20 bg-slate-50/50">
+                    <div className="flex justify-between items-center text-[11px] font-semibold text-tdc-charcoal">
+                      <span className="capitalize">{key}</span>
+                      <span className="text-[10px] text-tdc-gold-dark font-bold bg-tdc-cream px-1.5 py-0.5 rounded border border-tdc-cream-dark/30">
+                        {val}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={val}
+                      onChange={(e) => handleWeightChange(key, e.target.value)}
+                      onMouseUp={handleSliderMouseUp}
+                      onTouchEnd={handleSliderMouseUp}
+                      className="w-full h-1 bg-tdc-cream-dark/30 rounded-lg appearance-none cursor-pointer accent-tdc-gold focus:outline-none"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="text-[9px] text-tdc-charcoal/40 leading-relaxed font-medium italic text-center">
+                * Drag weight sliders to trigger real-time candidate list recalculation.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-tdc-cream/30 p-3.5 border-t border-tdc-cream-dark/40 flex justify-between items-center">
+              {updatingWeights ? (
+                <span className="text-[10px] text-tdc-sage font-bold animate-pulse uppercase tracking-wider pl-1">
+                  Recalculating Scores...
+                </span>
+              ) : (
+                <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider pl-1">
+                  Changes Saved
+                </span>
+              )}
+              <button
+                onClick={() => setWeightsModalOpen(false)}
+                className="bg-tdc-green hover:bg-tdc-gold text-white hover:text-tdc-green-dark border border-tdc-green/10 hover:border-tdc-gold font-semibold text-xs px-6 py-2.5 rounded-lg smooth-transition"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
