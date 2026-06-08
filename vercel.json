@@ -1,12 +1,11 @@
 {
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://tds-eight-tau.vercel.app/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|assets|favicon.ico).*)",
       "destination": "/index.html"
     }
   ]
